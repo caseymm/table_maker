@@ -47,14 +47,14 @@ sheet = book.sheet_by_index(0)
 print "Here is a example item from your spreadsheet."
 print
 
-check_float = []
+check_float = {}
 for row_index in range(sheet.nrows)[starting_row:starting_row+1]:
     for col_index in range(sheet.ncols):
         print col_index, sheet.cell(row_index,col_index).value
 
         # Notes that the value is not a string and appends it to a list to be referenced later
         if isinstance(sheet.cell(row_index,col_index).value, float):
-            check_float.append(col_index)
+            check_float.setdefault(col_index, sheet.cell(row_index,col_index).value)
 
 # Allows the user to decide which columns from the spreadsheet to keep
 print
@@ -74,64 +74,107 @@ for i in keep_cols_list:
     ival = raw_input ("Column "+str(i)+" name: ")
     date_or_num = "string"
 
+    # if 'i' is a date or number then do these things
     if i in check_float:
         print "It looks like the "+ ival +" column contains dates or numbers. If you would like to render this data as a date, type: 'date', for a number, type 'number.' Hit enter if neither."
         date_or_num = raw_input(">>> ")
 
-        print
-        print "The default date format is: ", time.strftime("%x")
-        print "Would you like to use the default date format? (y/n)"
-        print
-
-        def_date = raw_input(">>> ")
-        if def_date == 'y':
-            d_format = '%x'
-        else:
-            d_format = ''
-            print "Using today's date ("+time.strftime("%x")+") as an example, please answer the following questions."
+        # if 'i' is a date
+        if date_or_num == "date":
             print
-            print "Type how you would like 'month' to look? If you don't want to include month, hit 'ENTER.'"
-            print 'ex) '+ str(time.strftime("%b"))+', '+str(time.strftime("%B"))+', '+str(time.strftime("%m"))
-            def_month = raw_input(">>> ")
-            def_month = def_month.capitalize()
-            if def_month == str(time.strftime("%b")):
-                d_format += "%b"
-            elif def_month == str(time.strftime("%B")):
-                d_format += "%B"
-            elif def_month == str(time.strftime("%m")):
-                d_format += "%m"
+            print "The default date format is: ", time.strftime("%x")
+            print "Would you like to use the default date format? (y/n)"
+            print
+
+            def_date = raw_input(">>> ")
+            if def_date == 'y':
+                d_format = '%x'
             else:
-                add_zero = "0"+def_month
-                try:
-                    if add_zero == str(time.strftime("%m")):
-                        d_format += "%m"
-                except:
+                d_format = ''
+                print "Using today's date ("+time.strftime("%x")+") as an example, please answer the following questions."
+                print
+                print "Type how you would like 'month' to look? If you don't want to include month, hit 'ENTER.'"
+                print 'ex) '+ str(time.strftime("%b"))+', '+str(time.strftime("%B"))+', '+str(time.strftime("%m"))
+                def_month = raw_input(">>> ")
+                def_month = def_month.capitalize()
+                if def_month == str(time.strftime("%b")):
+                    d_format += "%b"
+                elif def_month == str(time.strftime("%B")):
+                    d_format += "%B"
+                elif def_month == str(time.strftime("%m")):
+                    d_format += "%m"
+                else:
+                    add_zero = "0"+def_month
+                    try:
+                        if add_zero == str(time.strftime("%m")):
+                            d_format += "%m"
+                    except:
+                        pass
+
+                print
+                print "Do you want to include the day? (y/n)"
+                def_day = raw_input(">>> ")
+                if def_day == 'y':
+                    d_format += "%d"
+                else:
                     pass
 
+                print
+                print "Type how you would like 'year' to look? If you don't want to include year, hit 'ENTER.'"
+                print "ex) "+str(time.strftime("%y"))+', '+str(time.strftime("%Y"))
+                def_year = raw_input(">>> ")
+                if def_year == str(time.strftime("%y")):
+                    d_format += "%y"
+                elif def_year == str(time.strftime("%Y")):
+                    d_format += "%Y"
+                else:
+                    pass
+
+            vf = [ival, date_or_num, d_format[:2]+'/%'.join(d_format[2:].split('%'))]
+
+        #if user specifed that the float is a number, do this
+        elif date_or_num == 'number':
+            print "Here's an example of a value found in the "+ival+" column: ", check_float[i]
             print
-            print "Do you want to include the day? (y/n)"
-            def_day = raw_input(">>> ")
-            if def_day == 'y':
-                d_format += "%d"
-            else:
-                pass
 
+            # Need to ask if it's a percent or if it needs to be multiplied. Store answers here and write them below after other math is done.
+            print "Is this number a percentage? (y/n)"
+            is_percentage = raw_input(">>> ")
             print
-            print "Type how you would like 'year' to look? If you don't want to include year, hit 'ENTER.'"
-            print "ex) "+str(time.strftime("%y"))+', '+str(time.strftime("%Y"))
-            def_year = raw_input(">>> ")
-            if def_year == str(time.strftime("%y")):
-                d_format += "%y"
-            elif def_year == str(time.strftime("%Y")):
-                d_format += "%Y"
-            else:
-                pass
+            print "Does this number need to be multiplied or divided by anything? (y/n)"
+            needs_math = raw_input(">>> ")
+            if needs_math == 'y':
+                # Need a function here to check and see if the math is correct
+                print "Using '/' for division and '*' for multiplication, please enter what how you would like to alter the number. \nex) '/10' or '*100'"
+                # Add math related stuff here
 
-        vf = [ival, date_or_num, d_format[:2]+'/%'.join(d_format[2:].split('%'))]
-    else:
-        vf = [ival, date_or_num]
 
-    col_name_dict.setdefault(i, vf)
+            print "If this number is formatted correctly, hit 'ENTER.' Otherwise, please enter 'int' if your number is an integer and 'float' if your number is a floating point number."
+            int_or_float = ('>>> ')
+            val_functions = []
+
+            if int_or_float == 'int':
+                print "Do you want to round the number? (y/n)"
+                round_num = raw_input('>>> ')
+
+                #append things to list as strings that will then be tested down below
+                if round_num == 'y':
+                    val_functions.append("round")
+
+                val_functions.append("int")
+
+            elif int_or_float == 'float':
+                #
+
+            if is_percentage == 'y':
+                val_functions.append("pct")
+            vf = [ival, date_or_num, val_functions]
+
+        #otherwise assume that it is a string
+        else:
+            vf = [ival, date_or_num]
+
+        col_name_dict.setdefault(i, vf)
 
 json_list = []
 
