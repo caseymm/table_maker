@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import time
 from datetime import datetime
 import xlrd
 from xlrd import open_workbook,cellname
@@ -72,10 +73,65 @@ col_name_dict = {}
 for i in keep_cols_list:
     ival = raw_input ("Column "+str(i)+" name: ")
     date_or_num = "string"
+
     if i in check_float:
         print "It looks like the "+ ival +" column contains dates or numbers. If you would like to render this data as a date, type: 'date', for a number, type 'number.' Hit enter if neither."
         date_or_num = raw_input(">>> ")
-    col_name_dict.setdefault(i, [ival, date_or_num])
+
+        print
+        print "The default date format is: ", time.strftime("%x")
+        print "Would you like to use the default date format? (y/n)"
+        print
+
+        def_date = raw_input(">>> ")
+        if def_date == 'y':
+            d_format = '%x'
+        else:
+            d_format = ''
+            print "Using today's date ("+time.strftime("%x")+") as an example, please answer the following questions."
+            print
+            print "Type how you would like 'month' to look? If you don't want to include month, hit 'ENTER.'"
+            print 'ex) '+ str(time.strftime("%b"))+', '+str(time.strftime("%B"))+', '+str(time.strftime("%m"))
+            def_month = raw_input(">>> ")
+            def_month = def_month.capitalize()
+            if def_month == str(time.strftime("%b")):
+                d_format += "%b"
+            elif def_month == str(time.strftime("%B")):
+                d_format += "%B"
+            elif def_month == str(time.strftime("%m")):
+                d_format += "%m"
+            else:
+                add_zero = "0"+def_month
+                try:
+                    if add_zero == str(time.strftime("%m")):
+                        d_format += "%m"
+                except:
+                    pass
+
+            print
+            print "Do you want to include the day? (y/n)"
+            def_day = raw_input(">>> ")
+            if def_day == 'y':
+                d_format += "%d"
+            else:
+                pass
+
+            print
+            print "Type how you would like 'year' to look? If you don't want to include year, hit 'ENTER.'"
+            print "ex) "+str(time.strftime("%y"))+', '+str(time.strftime("%Y"))
+            def_year = raw_input(">>> ")
+            if def_year == str(time.strftime("%y")):
+                d_format += "%y"
+            elif def_year == str(time.strftime("%Y")):
+                d_format += "%Y"
+            else:
+                pass
+
+        vf = [ival, date_or_num, d_format[:2]+'/%'.join(d_format[2:].split('%'))]
+    else:
+        vf = [ival, date_or_num]
+
+    col_name_dict.setdefault(i, vf)
 
 json_list = []
 
@@ -86,18 +142,18 @@ if ending_row == 'end':
 for row_index in range(sheet.nrows)[starting_row:ending_row]:
     tmp = {}
     for col_index in col_name_dict:
+        cell_val_orig = sheet.cell(row_index,col_index).value
         if col_name_dict[col_index][1] == 'date':
             try:
-                formatted_dt = datetime(*xlrd.xldate_as_tuple(cell_val, book.datemode))
-                # put in an if statement here that will allow the user to decide how to format the date
-                cell_val = datetime.strftime(formatted_dt, '%x')
+                formatted_dt = datetime(*xlrd.xldate_as_tuple(cell_val_orig, book.datemode))
+                cell_val = datetime.strftime(formatted_dt, col_name_dict[col_index][2])
             except:
                 pass
         # elif col_name_dict[col_index][1] == 'number':
         # add more formatting options here for decimal places
         # also for $ and % - check *100 for percentages
         else:
-            cell_val = sheet.cell(row_index,col_index).value
+            cell_val = cell_val_orig
 
         tmp.setdefault(col_name_dict[col_index][0], cell_val)
     json_list.append(tmp)

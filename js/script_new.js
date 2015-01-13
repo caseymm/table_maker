@@ -1,6 +1,6 @@
 $(document).ready( function () {
 
-    var col_list = ['name', 'team', 'number', 'date'];
+    var col_list = ['name', 'team', 'date'];
     for (i in col_list){
         $('.table-header').append('<th title="Field #'+i.split(' ').join('')+'">'+col_list[i]+'</th>');
     }
@@ -10,16 +10,15 @@ $(document).ready( function () {
 
 function get_data(){
     $.ajax({
-        url: "passing_stats.json",
+        url: "football.json",
         type: 'get',
         dataType: 'json',
         success: function (data) {
                   $.each(data, function(index, element){
 var name = '<td>'+element['name']+'</td>';
 var team = '<td>'+element['team']+'</td>';
-var number = '<td>'+element['number']+'</td>';
 var date = '<td>'+element['date']+'</td>';
-$('tbody').append('<tr>'+name+team+number+date+'</tr>');                      
+$('tbody').append('<tr>'+name+team+date+'</tr>');                      
 
                   })
                   $('#table-1').dataTable({
