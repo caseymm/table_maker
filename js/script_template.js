@@ -2,7 +2,7 @@ $(document).ready( function () {
 
     TABLE_HEADER
     for (i in col_list){
-        $('.table-header').append('<th title="Field #'+i+'">'+col_list[i]+'</th>');
+        $('.table-header').append('<th title="Field #'+i.split(' ').join('')+'">'+col_list[i]+'</th>');
     }
 
     get_data();
