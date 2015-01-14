@@ -136,8 +136,10 @@ for i in keep_cols_list:
         elif date_or_num == 'number':
             print "Here's an example of a value found in the "+ival+" column: ", check_float[i]
             print
+            val_functions = []
 
             # Need to ask if it's a percent or if it needs to be multiplied. Store answers here and write them below after other math is done.
+            # Add $
             print "Is this number a percentage? (y/n)"
             is_percentage = raw_input(">>> ")
             print
@@ -145,13 +147,15 @@ for i in keep_cols_list:
             needs_math = raw_input(">>> ")
             if needs_math == 'y':
                 # Need a function here to check and see if the math is correct
-                print "Using '/' for division and '*' for multiplication, please enter what how you would like to alter the number. \nex) '/10' or '*100'"
-                # Add math related stuff here
-
+                print "Using '/' for division and '*' for multiplication, please enter the operator that you would like to use."
+                operator = raw_input(">>> ")
+                make_op_text = operator.replace('/', 'divide').replace('*', 'multiply')
+                print "What number would you like to "+make_op_text+" by?"
+                post_op = raw_input(">>> ")
+                val_functions.append([operator, post_op])
 
             print "If this number is formatted correctly, hit 'ENTER.' Otherwise, please enter 'int' if your number is an integer and 'float' if your number is a floating point number."
             int_or_float = ('>>> ')
-            val_functions = []
 
             if int_or_float == 'int':
                 print "Do you want to round the number? (y/n)"
@@ -164,11 +168,16 @@ for i in keep_cols_list:
                 val_functions.append("int")
 
             elif int_or_float == 'float':
-                #
+                print "How many decimal places would you like to round to? Please enter an integer."
+                round_int = raw_input(">>> ")
+                # format(874.22, '.0f')
+                val_functions.append(round_int)
 
             if is_percentage == 'y':
                 val_functions.append("pct")
             vf = [ival, date_or_num, val_functions]
+            # think about making a second list or creating a dict to designate which values correspond to which functions (yet to be written)
+            # operator, post_op, "round", "int", round_int, "pct"
 
         #otherwise assume that it is a string
         else:
