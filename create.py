@@ -134,15 +134,16 @@ for i in keep_cols_list:
 
         #if user specifed that the float is a number, do this
         elif date_or_num == 'number':
+
             print "Here's an example of a value found in the "+ival+" column: ", check_float[i]
             print
-            val_functions = []
+            # val_functions = [[operator, post_op], [round, int], False, [special_format_char, before/after]]
+            val_functions = [False, False, False, False]
 
             # Need to ask if it's a percent or if it needs to be multiplied. Store answers here and write them below after other math is done.
             # Add $
-            print "Is this number a percentage? (y/n)"
-            is_percentage = raw_input(">>> ")
             print
+            print val_functions
             print "Does this number need to be multiplied or divided by anything? (y/n)"
             needs_math = raw_input(">>> ")
             if needs_math == 'y':
@@ -152,38 +153,51 @@ for i in keep_cols_list:
                 make_op_text = operator.replace('/', 'divide').replace('*', 'multiply')
                 print "What number would you like to "+make_op_text+" by?"
                 post_op = raw_input(">>> ")
-                val_functions.append([operator, post_op])
+                val_functions[0] = [operator, post_op]
 
+            print
+            print val_functions
             print "If this number is formatted correctly, hit 'ENTER.' Otherwise, please enter 'int' if your number is an integer and 'float' if your number is a floating point number."
-            int_or_float = ('>>> ')
+            int_or_float = raw_input('>>> ')
 
             if int_or_float == 'int':
+                int_array = [False, "int"]
                 print "Do you want to round the number? (y/n)"
                 round_num = raw_input('>>> ')
-
                 #append things to list as strings that will then be tested down below
                 if round_num == 'y':
-                    val_functions.append("round")
+                    int_array[0] = "round"
 
-                val_functions.append("int")
+                val_functions[1] = int_array
 
             elif int_or_float == 'float':
                 print "How many decimal places would you like to round to? Please enter an integer."
-                round_int = raw_input(">>> ")
+                round_float = raw_input(">>> ")
                 # format(874.22, '.0f')
-                val_functions.append(round_int)
+                val_functions[2] = round_float
+            print
+            print val_functions
+            print "Does your number need any special formatting ($, %, etc.)? If so, please enter the character(s) you would like to append/prepend to the number. Otherwise, please hit 'ENTER.'"
+            formatting_char = raw_input(">>> ")
 
-            if is_percentage == 'y':
-                val_functions.append("pct")
+            if len(formatting_char) > 0:
+                print "Does '"+formatting_char+"' go before (enter 'b') the number or after (enter 'a')?"
+                char_placement = raw_input(">>> ")
+
+                val_functions[3] = [formatting_char, char_placement]
+
+
+                # val_functions.append("pct")
             vf = [ival, date_or_num, val_functions]
             # think about making a second list or creating a dict to designate which values correspond to which functions (yet to be written)
             # operator, post_op, "round", "int", round_int, "pct"
 
-        #otherwise assume that it is a string
-        else:
-            vf = [ival, date_or_num]
+    #otherwise assume that it is a string
+    else:
+        vf = [ival, date_or_num]
 
-        col_name_dict.setdefault(i, vf)
+    col_name_dict.setdefault(i, vf)
+print col_name_dict
 
 json_list = []
 
@@ -194,10 +208,10 @@ if ending_row == 'end':
 for row_index in range(sheet.nrows)[starting_row:ending_row]:
     tmp = {}
     for col_index in col_name_dict:
-        cell_val_orig = sheet.cell(row_index,col_index).value
+        cell_val = sheet.cell(row_index,col_index).value
         if col_name_dict[col_index][1] == 'date':
             try:
-                formatted_dt = datetime(*xlrd.xldate_as_tuple(cell_val_orig, book.datemode))
+                formatted_dt = datetime(*xlrd.xldate_as_tuple(cell_val, book.datemode))
                 cell_val = datetime.strftime(formatted_dt, col_name_dict[col_index][2])
             except:
                 pass
@@ -205,7 +219,7 @@ for row_index in range(sheet.nrows)[starting_row:ending_row]:
         # add more formatting options here for decimal places
         # also for $ and % - check *100 for percentages
         else:
-            cell_val = cell_val_orig
+            pass
 
         tmp.setdefault(col_name_dict[col_index][0], cell_val)
     json_list.append(tmp)
