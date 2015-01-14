@@ -1,3 +1,4 @@
+from __future__ import division
 import os
 import json
 import re
@@ -143,7 +144,6 @@ for i in keep_cols_list:
             # Need to ask if it's a percent or if it needs to be multiplied. Store answers here and write them below after other math is done.
             # Add $
             print
-            print val_functions
             print "Does this number need to be multiplied or divided by anything? (y/n)"
             needs_math = raw_input(">>> ")
             if needs_math == 'y':
@@ -153,10 +153,10 @@ for i in keep_cols_list:
                 make_op_text = operator.replace('/', 'divide').replace('*', 'multiply')
                 print "What number would you like to "+make_op_text+" by?"
                 post_op = raw_input(">>> ")
-                val_functions[0] = [operator, post_op]
+
+                val_functions[0] = [operator, float(post_op)]
 
             print
-            print val_functions
             print "If this number is formatted correctly, hit 'ENTER.' Otherwise, please enter 'int' if your number is an integer and 'float' if your number is a floating point number."
             int_or_float = raw_input('>>> ')
 
@@ -173,10 +173,10 @@ for i in keep_cols_list:
             elif int_or_float == 'float':
                 print "How many decimal places would you like to round to? Please enter an integer."
                 round_float = raw_input(">>> ")
-                # format(874.22, '.0f')
+
                 val_functions[2] = round_float
+
             print
-            print val_functions
             print "Does your number need any special formatting ($, %, etc.)? If so, please enter the character(s) you would like to append/prepend to the number. Otherwise, please hit 'ENTER.'"
             formatting_char = raw_input(">>> ")
 
@@ -186,23 +186,41 @@ for i in keep_cols_list:
 
                 val_functions[3] = [formatting_char, char_placement]
 
-
-                # val_functions.append("pct")
             vf = [ival, date_or_num, val_functions]
-            # think about making a second list or creating a dict to designate which values correspond to which functions (yet to be written)
-            # operator, post_op, "round", "int", round_int, "pct"
+
 
     #otherwise assume that it is a string
     else:
         vf = [ival, date_or_num]
 
     col_name_dict.setdefault(i, vf)
-print col_name_dict
+
 
 json_list = []
 
 if ending_row == 'end':
     ending_row = sheet.nrows-1
+
+def do_math(num, operator, post_op):
+    if operator == '*':
+        return num * post_op
+    elif operator == '/':
+        return num / post_op
+
+def make_int(num, round_it, make_int):
+    if round_it:
+        return int(round(num))
+    else:
+        return int(num)
+
+def round_float(num, num_chars):
+    return format(num, '.'+str(num_chars)+'f')
+
+def special_format(num, char, pos):
+    if pos == 'b':
+        return char+str(num)
+    elif pos == 'a':
+        return str(num)+char
 
 # Generates json with correctly formatted values (string, date, number, etc.) based on the info entered above
 for row_index in range(sheet.nrows)[starting_row:ending_row]:
@@ -215,9 +233,18 @@ for row_index in range(sheet.nrows)[starting_row:ending_row]:
                 cell_val = datetime.strftime(formatted_dt, col_name_dict[col_index][2])
             except:
                 pass
-        # elif col_name_dict[col_index][1] == 'number':
-        # add more formatting options here for decimal places
-        # also for $ and % - check *100 for percentages
+        elif col_name_dict[col_index][1] == 'number':
+            format_array = col_name_dict[col_index][2]
+
+            #investigate use of self
+            if format_array[0]:
+                cell_val = do_math(cell_val, format_array[0][0], format_array[0][1])
+            if format_array[1]:
+                cell_val = make_int(cell_val, format_array[1][0], format_array[1][1])
+            if format_array[2]:
+                cell_val = round_float(cell_val, format_array[2])
+            if format_array[3]:
+                cell_val = special_format(cell_val, format_array[3][0], format_array[3][1])
         else:
             pass
 

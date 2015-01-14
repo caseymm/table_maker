@@ -1,6 +1,6 @@
 $(document).ready( function () {
 
-    var col_list = ['name', 'team', 'date'];
+    var col_list = ['player name', 'stat 1', 'stat 2'];
     for (i in col_list){
         $('.table-header').append('<th title="Field #'+i.split(' ').join('')+'">'+col_list[i]+'</th>');
     }
@@ -15,10 +15,10 @@ function get_data(){
         dataType: 'json',
         success: function (data) {
                   $.each(data, function(index, element){
-var name = '<td>'+element['name']+'</td>';
-var team = '<td>'+element['team']+'</td>';
-var date = '<td>'+element['date']+'</td>';
-$('tbody').append('<tr>'+name+team+date+'</tr>');                      
+var playername = '<td>'+element['player name']+'</td>';
+var stat1 = '<td>'+element['stat 1']+'</td>';
+var stat2 = '<td>'+element['stat 2']+'</td>';
+$('tbody').append('<tr>'+playername+stat1+stat2+'</tr>');                      
 
                   })
                   $('#table-1').dataTable({
