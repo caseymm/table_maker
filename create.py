@@ -8,12 +8,16 @@ import xlrd
 from xlrd import open_workbook,cellname
 
 def slugify(keyword):
-    return ''.join(keyword.split(' '))
+    rm_chars = ['?', '/', '&', '%']
+    slugged = ''.join(keyword.split(' '))
+    for i in rm_chars:
+        slugged = slugged.replace(i, '')
+    return slugged
 
 print"""
                                                                   *
                                                                  /|
-_____ _   ___  _    ___  __      _____ ____  _   ___ ___        / |
+ _____ _   ___ _    ___  __      _____ ____  _   ___ ___        / |
 |_   _/_\ | _ ) |  | __| \ \    / /_ _|_  / /_\ | _ \   \      /  |
   | |/ _ \| _ \ |__| _|   \ \/\/ / | | / / / _ \|   / |) |   _/___|_
   |_/_/ \_\___/____|___|   \_/\_/ |___/___/_/ \_\_|_\___/  ( ______ )
@@ -40,7 +44,7 @@ else:
     ending_row = 'end'
 
 #for getting base
-excel_file = os.path.abspath(excel_file_path.strip(' '))
+excel_file = os.path.abspath(excel_file_path.replace('\ ', ' ').strip(' '))
 
 book = open_workbook(excel_file)
 sheet = book.sheet_by_index(0)
@@ -49,7 +53,7 @@ print "Here is a example item from your spreadsheet."
 print
 
 check_float = {}
-for row_index in range(sheet.nrows)[starting_row:starting_row+1]:
+for row_index in range(sheet.nrows)[int(starting_row):int(starting_row)+1]:
     for col_index in range(sheet.ncols):
         print col_index, sheet.cell(row_index,col_index).value
 
@@ -159,6 +163,7 @@ for i in keep_cols_list:
             print
             print "If this number is formatted correctly, hit 'ENTER.' Otherwise, please enter 'int' if your number is an integer and 'float' if your number is a floating point number."
             int_or_float = raw_input('>>> ')
+            print
 
             if int_or_float == 'int':
                 int_array = [False, "int"]
@@ -179,6 +184,7 @@ for i in keep_cols_list:
             print
             print "Does your number need any special formatting ($, %, etc.)? If so, please enter the character(s) you would like to append/prepend to the number. Otherwise, please hit 'ENTER.'"
             formatting_char = raw_input(">>> ")
+            print
 
             if len(formatting_char) > 0:
                 print "Does '"+formatting_char+"' go before (enter 'b') the number or after (enter 'a')?"
@@ -187,6 +193,7 @@ for i in keep_cols_list:
                 val_functions[3] = [formatting_char, char_placement]
 
             vf = [ival, date_or_num, val_functions]
+            print
 
 
     #otherwise assume that it is a string
@@ -223,7 +230,7 @@ def special_format(num, char, pos):
         return str(num)+char
 
 # Generates json with correctly formatted values (string, date, number, etc.) based on the info entered above
-for row_index in range(sheet.nrows)[starting_row:ending_row]:
+for row_index in range(sheet.nrows)[int(starting_row):int(ending_row)]:
     tmp = {}
     for col_index in col_name_dict:
         cell_val = sheet.cell(row_index,col_index).value
